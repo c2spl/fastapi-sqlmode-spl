@@ -1,0 +1,5 @@
+.venv
+*.pyc
+database.db
+data/*
+data/.gitkeep
