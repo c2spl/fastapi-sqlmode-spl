@@ -1,20 +1,20 @@
 from pathlib import Path
 
-import sqlmodel as sm
+from sqlmodel import Session, create_engine, SQLModel
 
-sqlite_filename = "data/database.db"
-sqlite_url = f"sqlite:///{sqlite_filename}"
+_sqlite_filename = "data/database.sqlite3"
+_sqlite_url = f"sqlite:///{_sqlite_filename}"
 
-Path(sqlite_filename).unlink(missing_ok=True)
-engine = sm.create_engine(
-    sqlite_url, echo=False, connect_args=dict(check_same_thread=False)
+Path(_sqlite_filename).unlink(missing_ok=True)
+_engine = create_engine(
+    _sqlite_url, echo=False, connect_args=dict(check_same_thread=False)
 )
 
 
 def create_db_and_tables():
-    sm.SQLModel.metadata.create_all(engine)
+    SQLModel.metadata.create_all(_engine)
 
 
-def get_session():
-    with sm.Session(engine) as session:
-        yield session
+def session():
+    with Session(_engine) as s:
+        yield s

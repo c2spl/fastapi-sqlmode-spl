@@ -3,8 +3,9 @@ from fastapi.testclient import TestClient
 from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
 
-from app.main import Hero, app
-from app.database import get_session
+from app.main import app
+from app.database import session as get_session
+from app.model.hero import Hero
 
 
 @pytest.fixture(name="session")
@@ -32,7 +33,7 @@ def client_fixture(session: Session):
 
 def test_create_hero(client: TestClient):
     response = client.post(
-        "/heroes/", json={"name": "Deadpond", "secret_name": "Dive Wilson"}
+        "/api/v1/heroes/", json={"name": "Deadpond", "secret_name": "Dive Wilson"}
     )
     data = response.json()
 
@@ -45,14 +46,14 @@ def test_create_hero(client: TestClient):
 
 def test_create_hero_incomplete(client: TestClient):
     # No secret_name
-    response = client.post("/heroes/", json={"name": "Deadpond"})
+    response = client.post("/api/v1/heroes/", json={"name": "Deadpond"})
     assert response.status_code == 422
 
 
 def test_create_hero_invalid(client: TestClient):
     # secret_name has an invalid type
     response = client.post(
-        "/heroes/",
+        "/api/v1/heroes/",
         json={
             "name": "Deadpond",
             "secret_name": {"message": "Do you wanna know my secret identity?"},
@@ -68,7 +69,7 @@ def test_read_heroes(session: Session, client: TestClient):
     session.add(hero_2)
     session.commit()
 
-    response = client.get("/heroes/")
+    response = client.get("/api/v1/heroes/")
     data = response.json()
 
     assert response.status_code == 200
@@ -89,7 +90,7 @@ def test_read_hero(session: Session, client: TestClient):
     session.add(hero_1)
     session.commit()
 
-    response = client.get(f"/heroes/{hero_1.id}")
+    response = client.get(f"/api/v1/heroes/{hero_1.id}")
     data = response.json()
 
     assert response.status_code == 200
@@ -104,7 +105,7 @@ def test_update_hero(session: Session, client: TestClient):
     session.add(hero_1)
     session.commit()
 
-    response = client.patch(f"/heroes/{hero_1.id}", json={"name": "Deadpuddle"})
+    response = client.patch(f"/api/v1/heroes/{hero_1.id}", json={"name": "Deadpuddle"})
     data = response.json()
 
     assert response.status_code == 200
@@ -119,7 +120,7 @@ def test_delete_hero(session: Session, client: TestClient):
     session.add(hero_1)
     session.commit()
 
-    response = client.delete(f"/heroes/{hero_1.id}")
+    response = client.delete(f"/api/v1/heroes/{hero_1.id}")
 
     hero_in_db = session.get(Hero, hero_1.id)
 
